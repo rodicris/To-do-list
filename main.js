@@ -1,73 +1,80 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.querySelector("#task_form");
-    const input = document.querySelector("#task_input");
-    const tasksContainer = document.querySelector("#task");
+window.addEventListener('load', () => {
+  const form = document.getElementById('task_form');
+  const input = document.getElementById('task_input');
+  const list_el = document.getElementById('task');
 
-    loadTasks();
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
 
-    form.addEventListener('submit', function (event) {
-        event.preventDefault();
-  
-        const taskValue = input.value.trim();
-  
-        if (taskValue !== '') {
-            createTask(taskValue);
-            saveTasks();
-            input.value = '';
-        }
+    const task = input.value.trim();
+    if (!task) return;
+
+    const task_el = document.createElement('div');
+    task_el.classList.add('task');
+
+    const task_content_el = document.createElement('div');
+    task_content_el.classList.add('content');
+
+    const task_input_el = document.createElement('input');
+    task_input_el.classList.add('text');
+    task_input_el.type = 'text';
+    task_input_el.value = task;
+    task_input_el.setAttribute('readonly', 'readonly');
+
+    task_content_el.appendChild(task_input_el);
+    task_el.appendChild(task_content_el);
+
+    const task_actions_el = document.createElement('div');
+    task_actions_el.classList.add('buttons');
+
+    const task_edit_el = document.createElement('button');
+    task_edit_el.classList.add('edit');
+    task_edit_el.innerText = 'Edit';
+
+    const task_delete_el = document.createElement('button');
+    task_delete_el.classList.add('delete');
+    task_delete_el.innerText = 'Delete';
+
+    const task_complete_el = document.createElement('button');
+    task_complete_el.classList.add('complete');
+    task_complete_el.innerText = 'Complete';
+
+    task_actions_el.appendChild(task_edit_el);
+    task_actions_el.appendChild(task_delete_el);
+    task_actions_el.appendChild(task_complete_el);
+
+    task_el.appendChild(task_actions_el);
+    list_el.appendChild(task_el);
+
+    input.value = '';
+
+    // Toggle edit/save
+    task_edit_el.addEventListener('click', () => {
+      if (task_edit_el.innerText.toLowerCase() === 'edit') {
+        task_input_el.removeAttribute('readonly');
+        task_input_el.focus();
+        task_edit_el.innerText = 'Save';
+        task_edit_el.style.background = '#2dd4bf'; // teal when saving
+      } else {
+        task_input_el.setAttribute('readonly', 'readonly');
+        task_edit_el.innerText = 'Edit';
+        task_edit_el.style.background = '#6366f1'; // back to indigo
+      }
     });
 
-    function createTask(taskValue) {
-        const taskDiv = document.createElement('div');
-        taskDiv.classList.add('task');
-  
-        const contentDiv = document.createElement('div');
-        contentDiv.classList.add('content');
-  
-        const taskTextInput = document.createElement('input');
-        taskTextInput.type = 'text';
-        taskTextInput.classList.add('text');
-        taskTextInput.value = taskValue;
-        taskTextInput.readOnly = true;
-  
-        contentDiv.appendChild(taskTextInput);
-  
-        const buttonsDiv = document.createElement('div');
-        buttonsDiv.classList.add('buttons');
-  
-        const editButton = createButton('Edit', () => {
-            taskTextInput.readOnly = !taskTextInput.readOnly;
-            saveTasks();
-        });
-  
-        const deleteButton = createButton('Delete', () => {
-            tasksContainer.removeChild(taskDiv);
-            saveTasks();
-        });
-  
-        buttonsDiv.appendChild(editButton);
-        buttonsDiv.appendChild(deleteButton);
-  
-        taskDiv.appendChild(contentDiv);
-        taskDiv.appendChild(buttonsDiv);
-  
-        tasksContainer.appendChild(taskDiv);
-    }
+    // Delete task
+    task_delete_el.addEventListener('click', () => {
+      list_el.removeChild(task_el);
+    });
 
-    function createButton(text, callback) {
-        const button = document.createElement('button');
-        button.innerText = text;
-        button.addEventListener('click', callback);
-        return button;
-    }
-
-    function saveTasks() {
-        const tasks = Array.from(document.querySelectorAll('.task .text')).map(taskElement => taskElement.value);
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
-  
-    function loadTasks() {
-        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-        tasks.forEach(createTask);
-    }
+    // Complete task toggle
+    task_complete_el.addEventListener('click', () => {
+      task_el.classList.toggle('completed');
+      if (task_el.classList.contains('completed')) {
+        task_complete_el.innerText = 'Undo';
+      } else {
+        task_complete_el.innerText = 'Complete';
+      }
+    });
+  });
 });
